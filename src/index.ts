@@ -70,7 +70,7 @@ async function startBot() {
     });
 
     // Запускаем планировщик задач
-    const scheduler = new Scheduler(bot, raffleService, userService, mailingService);
+    const scheduler = new Scheduler(bot, raffleService, userService, mailingService, referralService);
     scheduler.start();
 
     // Запускаем бота

@@ -181,5 +181,36 @@ export class ReferralService {
             requiredReferrals
         };
     }
+    // Обновление количества рефералов участника в розыгрыше
+    async updateParticipantReferralCount(userId, raffleId) {
+        console.log(`🔄 Обновляем количество рефералов для участника ${userId} в розыгрыше ${raffleId}`);
+        const userReferrals = await this.getUserReferrals(userId);
+        const referralCount = userReferrals.length;
+        await this.db.run('UPDATE participants SET referral_count = ? WHERE user_id = ? AND raffle_id = ?', [referralCount, userId, raffleId]);
+        console.log(`✅ Обновлено количество рефералов: ${referralCount} для участника ${userId}`);
+    }
+    // Получение статистики рефералов для всех участников розыгрыша
+    async getRaffleReferralStats(raffleId) {
+        const participants = await this.db.all('SELECT p.*, u.first_name, u.username FROM participants p JOIN users u ON p.user_id = u.id WHERE p.raffle_id = ? AND p.is_eligible = TRUE', [raffleId]);
+        const totalParticipants = participants.length;
+        const participantsWithReferrals = participants.filter(p => p.referral_count > 0).length;
+        const totalReferrals = participants.reduce((sum, p) => sum + (p.referral_count || 0), 0);
+        const averageReferrals = totalParticipants > 0 ? totalReferrals / totalParticipants : 0;
+        const maxReferrals = Math.max(...participants.map(p => p.referral_count || 0), 0);
+        // Распределение по количеству рефералов
+        const referralDistribution = {};
+        participants.forEach(p => {
+            const count = p.referral_count || 0;
+            referralDistribution[count] = (referralDistribution[count] || 0) + 1;
+        });
+        return {
+            totalParticipants,
+            participantsWithReferrals,
+            totalReferrals,
+            averageReferrals,
+            maxReferrals,
+            referralDistribution
+        };
+    }
 }
 //# sourceMappingURL=referralService.js.map

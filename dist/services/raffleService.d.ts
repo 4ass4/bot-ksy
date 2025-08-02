@@ -9,7 +9,7 @@ export declare class RaffleService {
     getRafflesByStatus(status: RaffleStatus): Promise<Raffle[]>;
     getActiveRaffles(): Promise<Raffle[]>;
     updateRaffleStatus(id: number, status: RaffleStatus): Promise<void>;
-    addParticipant(userId: number, raffleId: number, isEligible: boolean): Promise<void>;
+    addParticipant(userId: number, raffleId: number, isEligible: boolean, referralCount?: number): Promise<void>;
     getParticipantsByRaffleId(raffleId: number): Promise<Participant[]>;
     getEligibleParticipants(raffleId: number): Promise<Participant[]>;
     addWinner(raffleId: number, userId: number, prizeWon?: string): Promise<void>;
@@ -35,6 +35,7 @@ export declare class RaffleService {
         maxReferrals: number;
     }>;
     calculateBonusMultiplier(referralCount: number): number;
+    selectWinnersWithWeights(participants: Participant[], winnersCount: number): Participant[];
     getRaffleRequirements(raffleId: number): Promise<{
         hasReferralRequirement: boolean;
         minReferrals: number;

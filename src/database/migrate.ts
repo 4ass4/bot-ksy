@@ -79,6 +79,7 @@ async function migrate() {
         user_id INTEGER,
         raffle_id INTEGER,
         is_eligible BOOLEAN DEFAULT FALSE,
+        referral_count INTEGER DEFAULT 0,
         participated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(user_id, raffle_id),
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
@@ -290,10 +291,23 @@ async function migrate() {
       )
     `);
 
+    // Добавляем колонку referral_count в таблицу participants (если её нет)
+    try {
+      await db.run(`ALTER TABLE participants ADD COLUMN referral_count INTEGER DEFAULT 0`);
+      console.log('✅ Колонка referral_count добавлена в таблицу participants');
+    } catch (error: any) {
+      if (error.message.includes('duplicate column name')) {
+        console.log('ℹ️ Колонка referral_count уже существует');
+      } else {
+        console.log('ℹ️ Колонка referral_count уже существует');
+      }
+    }
+
     // Создаем индексы для оптимизации
     await db.run(`CREATE INDEX IF NOT EXISTS idx_users_telegram_id ON users(telegram_id)`);
     await db.run(`CREATE INDEX IF NOT EXISTS idx_participants_raffle_id ON participants(raffle_id)`);
     await db.run(`CREATE INDEX IF NOT EXISTS idx_participants_user_id ON participants(user_id)`);
+    await db.run(`CREATE INDEX IF NOT EXISTS idx_participants_referral_count ON participants(referral_count)`);
     await db.run(`CREATE INDEX IF NOT EXISTS idx_raffles_status ON raffles(status)`);
     await db.run(`CREATE INDEX IF NOT EXISTS idx_raffles_end_date ON raffles(end_date)`);
     

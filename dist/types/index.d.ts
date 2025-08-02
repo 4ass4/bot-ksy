@@ -44,6 +44,7 @@ export interface Participant {
     user_id: number;
     raffle_id: number;
     is_eligible: boolean;
+    referral_count: number;
     participated_at: Date;
 }
 export interface Winner {

@@ -3,6 +3,7 @@ import { Bot } from 'grammy';
 import { RaffleService } from '../services/raffleService.js';
 import { UserService } from '../services/userService.js';
 import { MailingService } from '../services/mailingService.js';
+import { ReferralService } from '../services/referralService.js';
 import { RaffleStatus, MailingStatus, MailingType } from '../types/index.js';
 
 export class Scheduler {
@@ -10,7 +11,8 @@ export class Scheduler {
     private bot: Bot,
     private raffleService: RaffleService,
     private userService: UserService,
-    private mailingService: MailingService
+    private mailingService: MailingService,
+    private referralService: ReferralService
   ) {}
 
   start() {
@@ -60,11 +62,25 @@ export class Scheduler {
         return;
       }
 
-      // Выбираем победителей случайным образом
-      const winnersCount = Math.min(raffle.winners_count, eligibleParticipants.length);
-      const shuffled = [...eligibleParticipants].sort(() => 0.5 - Math.random());
-      const winners = shuffled.slice(0, winnersCount);
+      // Обновляем количество рефералов для всех участников
+      console.log('🔄 Обновляем количество рефералов для всех участников...');
+      for (const participant of eligibleParticipants) {
+        await this.referralService.updateParticipantReferralCount(participant.user_id, raffleId);
+      }
 
+      // Получаем обновленных участников с актуальными данными о рефералах
+      const updatedParticipants = await this.raffleService.getEligibleParticipants(raffleId);
+      
+      // Выбираем победителей с учетом реферальных бонусов
+      const winnersCount = Math.min(raffle.winners_count, updatedParticipants.length);
+      const winners = this.raffleService.selectWinnersWithWeights(updatedParticipants, winnersCount);
+      
+      console.log(`🎯 Выбрано ${winners.length} победителей из ${updatedParticipants.length} участников`);
+      
+      // Получаем статистику рефералов для логов
+      const referralStats = await this.referralService.getRaffleReferralStats(raffleId);
+      console.log(`📈 Статистика рефералов: ${referralStats.participantsWithReferrals}/${referralStats.totalParticipants} участников с рефералами, среднее: ${referralStats.averageReferrals.toFixed(2)}`);
+      
       // Сохраняем победителей в базу
       for (const winner of winners) {
         await this.raffleService.addWinner(raffleId, winner.user_id);

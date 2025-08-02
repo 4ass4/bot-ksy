@@ -25,5 +25,16 @@ export declare class ReferralService {
         currentReferrals: number;
         requiredReferrals: number;
     }>;
+    updateParticipantReferralCount(userId: number, raffleId: number): Promise<void>;
+    getRaffleReferralStats(raffleId: number): Promise<{
+        totalParticipants: number;
+        participantsWithReferrals: number;
+        totalReferrals: number;
+        averageReferrals: number;
+        maxReferrals: number;
+        referralDistribution: {
+            [key: number]: number;
+        };
+    }>;
 }
 //# sourceMappingURL=referralService.d.ts.map

@@ -89,11 +89,11 @@ export class RaffleService {
     await this.db.run('UPDATE raffles SET status = ? WHERE id = ?', [status, id]);
   }
 
-  async addParticipant(userId: number, raffleId: number, isEligible: boolean): Promise<void> {
-    console.log(`📝 Добавляем участника: userId=${userId}, raffleId=${raffleId}, isEligible=${isEligible}`);
+  async addParticipant(userId: number, raffleId: number, isEligible: boolean, referralCount: number = 0): Promise<void> {
+    console.log(`📝 Добавляем участника: userId=${userId}, raffleId=${raffleId}, isEligible=${isEligible}, referralCount=${referralCount}`);
     await this.db.run(
-      'INSERT OR REPLACE INTO participants (user_id, raffle_id, is_eligible) VALUES (?, ?, ?)',
-      [userId, raffleId, isEligible]
+      'INSERT OR REPLACE INTO participants (user_id, raffle_id, is_eligible, referral_count) VALUES (?, ?, ?, ?)',
+      [userId, raffleId, isEligible, referralCount]
     );
     console.log(`✅ Участник добавлен в базу данных`);
   }
@@ -116,6 +116,7 @@ export class RaffleService {
     );
     return participants.map(p => ({
       ...p,
+      referral_count: p.referral_count || 0,
       participated_at: new Date(p.participated_at)
     }));
   }
@@ -272,6 +273,80 @@ export class RaffleService {
     if (referralCount >= 2) return 1.5; // +50% шансов
     if (referralCount >= 1) return 1.25; // +25% шансов
     return 1.0; // Базовые шансы
+  }
+
+  // Взвешенный выбор победителей с учетом реферальных бонусов
+  selectWinnersWithWeights(participants: Participant[], winnersCount: number): Participant[] {
+    console.log(`🎯 Выбираем ${winnersCount} победителей из ${participants.length} участников`);
+    
+    if (participants.length === 0) {
+      console.log('❌ Нет участников для выбора победителей');
+      return [];
+    }
+
+    if (participants.length <= winnersCount) {
+      console.log('✅ Участников меньше или равно количеству победителей, возвращаем всех');
+      return participants;
+    }
+
+    // Создаем массив с весами для каждого участника
+    const weightedParticipants = participants.map(participant => {
+      const multiplier = this.calculateBonusMultiplier(participant.referral_count);
+      return {
+        participant,
+        weight: multiplier,
+        originalWeight: multiplier
+      };
+    });
+
+    console.log('📊 Веса участников:');
+    weightedParticipants.forEach((wp, index) => {
+      console.log(`  ${index + 1}. Участник ${wp.participant.user_id}: ${wp.participant.referral_count} рефералов → множитель ${wp.weight}x`);
+    });
+
+    const winners: Participant[] = [];
+    const totalWeight = weightedParticipants.reduce((sum, wp) => sum + wp.weight, 0);
+    
+    console.log(`📈 Общий вес всех участников: ${totalWeight}`);
+
+    for (let i = 0; i < winnersCount; i++) {
+      if (weightedParticipants.length === 0) break;
+
+      // Выбираем случайное число от 0 до общего веса
+      const randomValue = Math.random() * totalWeight;
+      
+      let currentWeight = 0;
+      let selectedIndex = -1;
+
+      // Находим участника по случайному весу
+      for (let j = 0; j < weightedParticipants.length; j++) {
+        currentWeight += weightedParticipants[j].weight;
+        if (randomValue <= currentWeight) {
+          selectedIndex = j;
+          break;
+        }
+      }
+
+      if (selectedIndex === -1) {
+        selectedIndex = weightedParticipants.length - 1;
+      }
+
+      // Добавляем выбранного участника в победители
+      const winner = weightedParticipants[selectedIndex];
+      winners.push(winner.participant);
+      
+      console.log(`🏆 Выбран победитель ${i + 1}: Участник ${winner.participant.user_id} (${winner.participant.referral_count} рефералов, вес: ${winner.originalWeight}x)`);
+
+      // Удаляем выбранного участника из списка
+      weightedParticipants.splice(selectedIndex, 1);
+      
+      // Пересчитываем общий вес
+      const newTotalWeight = weightedParticipants.reduce((sum, wp) => sum + wp.weight, 0);
+      console.log(`📊 Осталось участников: ${weightedParticipants.length}, новый общий вес: ${newTotalWeight}`);
+    }
+
+    console.log(`✅ Выбрано ${winners.length} победителей`);
+    return winners;
   }
 
   async getRaffleRequirements(raffleId: number): Promise<{

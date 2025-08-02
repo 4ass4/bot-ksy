@@ -59,7 +59,7 @@ async function startBot() {
             console.error(`Ошибка при обработке обновления ${ctx.update.update_id}:`, err.error);
         });
         // Запускаем планировщик задач
-        const scheduler = new Scheduler(bot, raffleService, userService, mailingService);
+        const scheduler = new Scheduler(bot, raffleService, userService, mailingService, referralService);
         scheduler.start();
         // Запускаем бота
         await bot.start();

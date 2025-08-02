@@ -1133,7 +1133,7 @@ export class UnifiedHandlers {
     async cancelAdminAction(ctx: Context) {
         const userId = ctx.from.id;
         delete this.adminStates[userId];
-        await ctx.editMessageText('❌ Действие отменено.', {
+        await this.sendMessage(ctx, '❌ Действие отменено.', {
             reply_markup: Keyboards.backToAdmin()
         });
     }
@@ -1745,7 +1745,13 @@ export class UnifiedHandlers {
         // Если нет никаких требований, сразу регистрируем участие
         if (!hasChannelRequirements && !hasSocialRequirements && !hasReferralRequirements) {
             console.log(`📝 Регистрируем участие: user.id=${user.id}, raffleId=${raffleId} (без требований)`);
-            await this.raffleService.addParticipant(user.id, raffleId, true);
+            
+            // Получаем количество рефералов пользователя
+            const userReferrals = await this.referralService.getUserReferrals(user.id);
+            const referralCount = userReferrals.length;
+            
+            // Добавляем участника в розыгрыш с количеством рефералов
+            await this.raffleService.addParticipant(user.id, raffleId, true, referralCount);
             console.log(`✅ Участие зарегистрировано для пользователя ${user.id} в розыгрыше ${raffleId}`);
             const successText = `🎉 *Поздравляем! Вы успешно зарегистрированы в розыгрыше!*
 
@@ -1868,7 +1874,13 @@ export class UnifiedHandlers {
         // Если есть только реферальные требования и они выполнены
         if (!hasChannelRequirements && hasReferralRequirements && referralRequirements.hasEnoughReferrals) {
             console.log(`📝 Регистрируем участие: user.id=${user.id}, raffleId=${raffleId} (рефералы выполнены)`);
-            await this.raffleService.addParticipant(user.id, raffleId, true);
+            
+            // Получаем количество рефералов пользователя
+            const userReferrals = await this.referralService.getUserReferrals(user.id);
+            const referralCount = userReferrals.length;
+            
+            // Добавляем участника в розыгрыш с количеством рефералов
+            await this.raffleService.addParticipant(user.id, raffleId, true, referralCount);
             console.log(`✅ Участие зарегистрировано для пользователя ${user.id} в розыгрыше ${raffleId}`);
             const successText = `🎉 *Поздравляем! Вы успешно зарегистрированы в розыгрыше!*
 
@@ -1933,7 +1945,9 @@ export class UnifiedHandlers {
         });
         keyboard.row().text('🔍 Проверить подписку', `check_subscription_${raffle.id}`);
         keyboard.row().text('🔙 Назад к розыгрышам', 'active_raffles');
-        await ctx.editMessageText(text, {
+        
+        await this.sendMessage(ctx, text, {
+            parse_mode: 'Markdown',
             reply_markup: keyboard
         });
     }
@@ -1956,7 +1970,7 @@ export class UnifiedHandlers {
         keyboard.url(`📺 Подписаться на ${channel.name}`, channel.invite_link);
         keyboard.row().text('🔍 Проверить подписку', `check_subscription_${channelId}`);
         keyboard.row().text('🔙 Назад к розыгрышам', 'active_raffles');
-        await ctx.editMessageText(`📺 *Подписка на канал*
+        await this.sendMessage(ctx, `📺 *Подписка на канал*
 
 🎯 Канал: *${channel.name}*
 🔗 Ссылка: \`${channel.invite_link}\`
@@ -1979,7 +1993,7 @@ export class UnifiedHandlers {
         }
         const raffle = await this.raffleService.getRaffleById(raffleId);
         if (!raffle || raffle.status !== 'ACTIVE') {
-            await ctx.editMessageText('❌ Розыгрыш недоступен или завершен.', {
+            await this.sendMessage(ctx, '❌ Розыгрыш недоступен или завершен.', {
                 reply_markup: Keyboards.backToMain()
             });
             return;
@@ -2067,7 +2081,13 @@ export class UnifiedHandlers {
             } else {
                 // Реферальные требования выполнены, регистрируем участие
                 console.log(`📝 Регистрируем участие: user.id=${user.id}, raffleId=${raffleId} (подписка + рефералы выполнены)`);
-                await this.raffleService.addParticipant(user.id, raffleId, true);
+                
+                // Получаем количество рефералов пользователя
+                const userReferrals = await this.referralService.getUserReferrals(user.id);
+                const referralCount = userReferrals.length;
+                
+                // Добавляем участника в розыгрыш с количеством рефералов
+                await this.raffleService.addParticipant(user.id, raffleId, true, referralCount);
                 console.log(`✅ Участие зарегистрировано для пользователя ${user.id} в розыгрыше ${raffleId}`);
                 const successText = `🎉 *Поздравляем! Вы успешно зарегистрированы в розыгрыше!*
 
@@ -2092,7 +2112,13 @@ export class UnifiedHandlers {
         } else {
             // Нет реферальных требований, просто регистрируем участие
             console.log(`📝 Регистрируем участие: user.id=${user.id}, raffleId=${raffleId} (только подписка)`);
-            await this.raffleService.addParticipant(user.id, raffleId, true);
+            
+            // Получаем количество рефералов пользователя
+            const userReferrals = await this.referralService.getUserReferrals(user.id);
+            const referralCount = userReferrals.length;
+            
+            // Добавляем участника в розыгрыш с количеством рефералов
+            await this.raffleService.addParticipant(user.id, raffleId, true, referralCount);
             console.log(`✅ Участие зарегистрировано для пользователя ${user.id} в розыгрыше ${raffleId}`);
             const successText = `🎉 *Поздравляем! Вы успешно зарегистрированы в розыгрыше!*
 
@@ -2151,7 +2177,13 @@ export class UnifiedHandlers {
         
         if (allSubscribed) {
             // Все подписки выполнены, регистрируем участие
-            await this.raffleService.addParticipant(user.id, raffleId, true);
+            
+            // Получаем количество рефералов пользователя
+            const userReferrals = await this.referralService.getUserReferrals(user.id);
+            const referralCount = userReferrals.length;
+            
+            // Добавляем участника в розыгрыш с количеством рефералов
+            await this.raffleService.addParticipant(user.id, raffleId, true, referralCount);
             const successText = `✅ *Подписка на социальные аккаунты подтверждена!*
 
 🎁 Приз: ${raffle.prize_description}
@@ -2245,7 +2277,13 @@ export class UnifiedHandlers {
         
         if (allChannelsSubscribed && allSocialSubscribed) {
             // Все подписки выполнены, регистрируем участие
-            await this.raffleService.addParticipant(user.id, raffleId, true);
+            
+            // Получаем количество рефералов пользователя
+            const userReferrals = await this.referralService.getUserReferrals(user.id);
+            const referralCount = userReferrals.length;
+            
+            // Добавляем участника в розыгрыш с количеством рефералов
+            await this.raffleService.addParticipant(user.id, raffleId, true, referralCount);
             const successText = `✅ *Все подписки подтверждены!*
 
 🎁 Приз: ${raffle.prize_description}
@@ -3321,7 +3359,13 @@ ${chat.description ? `📝 *Описание:* ${chat.description}\n` : ''}
         if (referralRequirements.hasEnoughReferrals) {
             // Реферальные требования выполнены, регистрируем участие
             console.log(`📝 Регистрируем участие: user.id=${user.id}, raffleId=${raffleId} (рефералы выполнены)`);
-            await this.raffleService.addParticipant(user.id, raffleId, true);
+            
+            // Получаем количество рефералов пользователя
+            const userReferrals = await this.referralService.getUserReferrals(user.id);
+            const referralCount = userReferrals.length;
+            
+            // Добавляем участника в розыгрыш с количеством рефералов
+            await this.raffleService.addParticipant(user.id, raffleId, true, referralCount);
             console.log(`✅ Участие зарегистрировано для пользователя ${user.id} в розыгрыше ${raffleId}`);
             const successText = `🎉 *Поздравляем! Вы успешно зарегистрированы в розыгрыше!*
 
