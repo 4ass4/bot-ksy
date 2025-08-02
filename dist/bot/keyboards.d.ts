@@ -1,0 +1,42 @@
+import { InlineKeyboard } from 'grammy';
+export declare class Keyboards {
+    static adminMain(): InlineKeyboard;
+    static adminChannels(): InlineKeyboard;
+    static adminRaffles(): InlineKeyboard;
+    static adminMailings(): InlineKeyboard;
+    static mailingTypeSelection(): InlineKeyboard;
+    static mailingScheduleSelection(): InlineKeyboard;
+    static mailingMediaSelection(): InlineKeyboard;
+    static raffleMediaSelection(): InlineKeyboard;
+    static mailingsToDelete(mailings: any[]): InlineKeyboard;
+    static participateInRaffle(raffleId: number): InlineKeyboard;
+    static checkSubscriptions(raffleId: number): InlineKeyboard;
+    static confirmAction(actionData: string): InlineKeyboard;
+    static backToAdmin(): InlineKeyboard;
+    static backToMain(): InlineKeyboard;
+    static cancelAction(): InlineKeyboard;
+    static mainUser(activeCount?: number, participationCount?: number): InlineKeyboard;
+    static myRaffles(): InlineKeyboard;
+    static rafflesToPublish(raffleIndexes: number[]): InlineKeyboard;
+    static channelsToDelete(channels: any[]): InlineKeyboard;
+    static rafflesToDelete(raffles: any[]): InlineKeyboard;
+    static raffleTypeSelection(): InlineKeyboard;
+    static raffleCreationType(): InlineKeyboard;
+    static referralRequirementSelection(): InlineKeyboard;
+    static adminOfficialChannel(): InlineKeyboard;
+    static raffleCreatedActions(raffleId: number): InlineKeyboard;
+    static editRaffleFields(hasParticipants: boolean): InlineKeyboard;
+    static botSettings(): InlineKeyboard;
+    static referralMain(): InlineKeyboard;
+    static referralLink(code: string, link: string): InlineKeyboard;
+    static referralStats(stats: any): InlineKeyboard;
+    static referralList(): InlineKeyboard;
+    static referralTop(): InlineKeyboard;
+    static referralMainWithContext(raffleId: number): InlineKeyboard;
+    static adminSocial(): InlineKeyboard;
+    static socialPlatformSelection(): InlineKeyboard;
+    static socialAccountsList(accounts: any[]): InlineKeyboard;
+    static socialAccountActions(accountId: number): InlineKeyboard;
+    private static getPlatformIcon;
+}
+//# sourceMappingURL=keyboards.d.ts.map

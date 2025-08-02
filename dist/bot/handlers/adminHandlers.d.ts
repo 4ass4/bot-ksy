@@ -1,0 +1,42 @@
+import { Bot } from 'grammy';
+import { UserService } from '../../services/userService.js';
+import { ChannelService } from '../../services/channelService.js';
+import { RaffleService } from '../../services/raffleService.js';
+import { MailingService } from '../../services/mailingService.js';
+export declare class AdminHandlers {
+    private bot;
+    private userService;
+    private channelService;
+    private raffleService;
+    private mailingService;
+    private adminStates;
+    constructor(bot: Bot, userService: UserService, channelService: ChannelService, raffleService: RaffleService, mailingService: MailingService);
+    register(): void;
+    private handleTextMessage;
+    private handleAddChannel;
+    private handleCreateRaffleTitle;
+    private handleCreateRafflePrize;
+    private handleCreateRaffleWinners;
+    private handleCreateRaffleDuration;
+    private handleSelectChannel;
+    private updateChannelSelectionMessage;
+    private handleCreateRaffleFinal;
+    private handleCreateMailingText;
+    private cancelAction;
+    private showMainAdminMenu;
+    private showChannelsMenu;
+    private showRafflesMenu;
+    private showMailingsMenu;
+    private showStats;
+    private showSettings;
+    private startAddChannel;
+    private showChannelsList;
+    private startCreateRaffle;
+    private showActiveRaffles;
+    private showFinishedRaffles;
+    private startCreateMailing;
+    private showMailingsList;
+    private startPublishRaffle;
+    private publishRaffleToChannels;
+}
+//# sourceMappingURL=adminHandlers.d.ts.map
